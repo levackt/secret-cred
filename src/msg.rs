@@ -1,5 +1,6 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use cosmwasm_std::{CanonicalAddr, HumanAddr};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
@@ -14,7 +15,8 @@ pub enum HandleMsg {
         amount: u64
     },
     RegisterUser {
-        id: String,
+        cred_id: String,
+        scrt_address: HumanAddr,
     },
 }
 
@@ -22,8 +24,8 @@ pub enum HandleMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Config {},
-    GetTotalAllocated {user_id: String},
-    IsUserRegistered {user_id: String},
+    GetTotalAllocated { cred_id: String},
+    IsCredRegistered { cred_id: String},
 }
 
 // We define a custom struct for each query response
@@ -33,6 +35,6 @@ pub struct TotalAllocatedResponse {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct UserRegisteredResponse {
+pub struct CredRegisteredResponse {
     pub registered: bool,
 }

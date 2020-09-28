@@ -5,11 +5,49 @@
     {
       "type": "object",
       "required": [
-        "get_count"
+        "config"
       ],
       "properties": {
-        "get_count": {
+        "config": {
           "type": "object"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_total_allocated"
+      ],
+      "properties": {
+        "get_total_allocated": {
+          "type": "object",
+          "required": [
+            "cred_id"
+          ],
+          "properties": {
+            "cred_id": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "is_cred_registered"
+      ],
+      "properties": {
+        "is_cred_registered": {
+          "type": "object",
+          "required": [
+            "cred_id"
+          ],
+          "properties": {
+            "cred_id": {
+              "type": "string"
+            }
+          }
         }
       }
     }

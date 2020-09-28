@@ -1,5 +1,5 @@
 [package]
-name = "anothersimplecounter"
+name = "secretcred"
 version = "0.1.0"
 authors = ["Taariq Levack <levackt@users.noreply.github.com>"]
 edition = "2018"

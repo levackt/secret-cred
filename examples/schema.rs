@@ -3,8 +3,8 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use anothersimplecounter::msg::{CountResponse, HandleMsg, InitMsg, QueryMsg};
-use anothersimplecounter::state::State;
+use secretcred::msg::{CredRegisteredResponse, TotalAllocatedResponse, HandleMsg, InitMsg, QueryMsg};
+use secretcred::state::State;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();
@@ -16,5 +16,6 @@ fn main() {
     export_schema(&schema_for!(HandleMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
     export_schema(&schema_for!(State), &out_dir);
-    export_schema(&schema_for!(CountResponse), &out_dir);
+    export_schema(&schema_for!(CredRegisteredResponse), &out_dir);
+    export_schema(&schema_for!(TotalAllocatedResponse), &out_dir);
 }

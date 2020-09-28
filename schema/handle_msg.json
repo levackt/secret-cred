@@ -5,33 +5,55 @@
     {
       "type": "object",
       "required": [
-        "increment"
+        "allocate"
       ],
       "properties": {
-        "increment": {
-          "type": "object"
+        "allocate": {
+          "type": "object",
+          "required": [
+            "amount",
+            "id"
+          ],
+          "properties": {
+            "amount": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "id": {
+              "type": "string"
+            }
+          }
         }
       }
     },
     {
       "type": "object",
       "required": [
-        "reset"
+        "register_user"
       ],
       "properties": {
-        "reset": {
+        "register_user": {
           "type": "object",
           "required": [
-            "count"
+            "cred_id",
+            "scrt_address"
           ],
           "properties": {
-            "count": {
-              "type": "integer",
-              "format": "int32"
+            "cred_id": {
+              "type": "string"
+            },
+            "scrt_address": {
+              "$ref": "#/definitions/HumanAddr"
             }
           }
         }
       }
     }
-  ]
+  ],
+  "definitions": {
+    "HumanAddr": {
+      "type": "string"
+    }
+  }
 }
