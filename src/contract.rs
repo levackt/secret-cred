@@ -59,17 +59,22 @@ pub fn try_register_user<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<HandleResponse> {
     let sender_address_raw = deps.api.canonical_address(&env.message.sender)?;
     let state = config_read(&mut deps.storage).load()?;
-    config(&mut deps.storage).update(|mut state| {
-        if sender_address_raw != state.owner {
-            return Err(StdError::Unauthorized { backtrace: None });
-        }
-        Ok(state)
-    })?;
+    if sender_address_raw != state.owner {
+        return Err(StdError::Unauthorized { backtrace: None });
+    }
 
-
-    //todo user must not exist
-    let scrt_address_raw = deps.api.canonical_address(scrt_address)?;
+    // user must not exist
     let key = &cred_id.to_string();
+    let registered = match user_cred_read(&deps.storage).may_load(key.as_bytes())? {
+        Some(cred) => Some(true),
+        None => Some(false),
+    }.unwrap();
+    if registered {
+        return Err(StdError::GenericErr {
+            msg: "User already exists".to_string(), backtrace: None })
+    }
+
+    let scrt_address_raw = deps.api.canonical_address(scrt_address)?;
 
     let cred = UserCred{
         cred_id,
@@ -192,5 +197,29 @@ mod tests {
 
         let _res = handle(&mut deps, env, msg).expect("contract successfully registers cred");
         assert_registered(&mut deps, "street_cred1", true);
+    }
+
+    #[test]
+    fn register_twice_fails() {
+        let mut deps = mock_dependencies(20, &[]);
+        let env = mock_env(TEST_CREATOR, &coins(1000, "hush money"));
+        mock_init(&mut deps);
+
+        let cred_id = "street_cred1".to_string();
+        let msg = HandleMsg::RegisterUser {
+            cred_id,
+            scrt_address: HumanAddr("secret007".to_string())
+        };
+
+        let _res = handle(&mut deps, env.clone(), msg.clone()).expect("contract successfully registers cred");
+        assert_registered(&mut deps, "street_cred1", true);
+        let _res = handle(&mut deps, env, msg);
+        match _res {
+            Ok(_) => panic!("expected error"),
+            Err(StdError::GenericErr { msg, .. }) => {
+                assert_eq!(msg, "User already exists")
+            }
+            Err(e) => panic!("unexpected error: {:?}", e),
+        }
     }
 }
