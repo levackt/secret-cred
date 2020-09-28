@@ -5,7 +5,7 @@ use cosmwasm_storage::{
     bucket, bucket_read, singleton, singleton_read, Bucket, ReadonlyBucket, ReadonlySingleton,
     Singleton,
 };
-use cosmwasm_std::{CanonicalAddr, Storage, Uint128};
+use cosmwasm_std::{CanonicalAddr, Storage};
 
 pub static CONFIG_KEY: &[u8] = b"config";
 pub static USER_CRED_KEY: &[u8] = b"user_cred";
@@ -31,7 +31,7 @@ pub struct UserCred {
     pub cred_id: String,  // ID on source cred
     pub scrt_address: CanonicalAddr,  //  public address of registered user
     pub total_allocated: u64,  // total allocated
-    pub allocations: Vec<(String, Allocation)>,  // Maps distribution uuid to allocations
+    pub allocations: Vec<Allocation>,  // Maps distribution uuid to allocations
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -40,10 +40,17 @@ pub enum PolicyType {
     Immediate,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, JsonSchema)]
 pub struct Allocation {
     pub policy: PolicyType,
     pub amount: u64,
+    pub allocation_id: String,
+}
+
+impl PartialEq for Allocation {
+    fn eq(&self, other: &Self) -> bool {
+        self.allocation_id == other.allocation_id
+    }
 }
 
 pub fn user_cred<S: Storage>(storage: &mut S) -> Bucket<S, UserCred> {

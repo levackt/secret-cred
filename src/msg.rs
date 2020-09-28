@@ -1,6 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use cosmwasm_std::{CanonicalAddr, HumanAddr};
+use crate::state::{PolicyType};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
@@ -11,8 +12,10 @@ pub struct InitMsg {
 #[serde(rename_all = "snake_case")]
 pub enum HandleMsg {
     Allocate {
-        id: String,
-        amount: u64
+        allocation_id: String,
+        amount: u64,
+        cred_id: String,
+        policy_type: PolicyType,
     },
     RegisterUser {
         cred_id: String,
@@ -26,6 +29,7 @@ pub enum QueryMsg {
     Config {},
     GetTotalAllocated { cred_id: String},
     IsCredRegistered { cred_id: String},
+    GetUserCred { cred_id: String},
 }
 
 // We define a custom struct for each query response
@@ -37,4 +41,11 @@ pub struct TotalAllocatedResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct CredRegisteredResponse {
     pub registered: bool,
+}
+
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct UserCredResponse {
+    pub scrt_address: CanonicalAddr,
+    pub total_allocated: u64,
 }
