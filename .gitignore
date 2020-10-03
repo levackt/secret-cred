@@ -13,3 +13,9 @@
 # IDEs
 *.iml
 .idea
+
+# client
+/client/node_modules
+/client/build
+/client/.env
+/client/*.log*
