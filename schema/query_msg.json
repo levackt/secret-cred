@@ -50,6 +50,48 @@
           }
         }
       }
+    },
+    {
+      "type": "object",
+      "required": [
+        "is_allocated"
+      ],
+      "properties": {
+        "is_allocated": {
+          "type": "object",
+          "required": [
+            "allocation_id",
+            "cred_id"
+          ],
+          "properties": {
+            "allocation_id": {
+              "type": "string"
+            },
+            "cred_id": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_user_cred"
+      ],
+      "properties": {
+        "get_user_cred": {
+          "type": "object",
+          "required": [
+            "cred_id"
+          ],
+          "properties": {
+            "cred_id": {
+              "type": "string"
+            }
+          }
+        }
+      }
     }
   ]
 }

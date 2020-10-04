@@ -7,9 +7,12 @@
   ],
   "properties": {
     "total_allocated": {
-      "type": "integer",
-      "format": "uint64",
-      "minimum": 0.0
+      "$ref": "#/definitions/Uint128"
+    }
+  },
+  "definitions": {
+    "Uint128": {
+      "type": "string"
     }
   }
 }

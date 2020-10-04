@@ -11,17 +11,23 @@
         "allocate": {
           "type": "object",
           "required": [
+            "allocation_id",
             "amount",
-            "id"
+            "cred_id",
+            "policy_type"
           ],
           "properties": {
-            "amount": {
-              "type": "integer",
-              "format": "uint64",
-              "minimum": 0.0
-            },
-            "id": {
+            "allocation_id": {
               "type": "string"
+            },
+            "amount": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "cred_id": {
+              "type": "string"
+            },
+            "policy_type": {
+              "$ref": "#/definitions/PolicyType"
             }
           }
         }
@@ -40,6 +46,12 @@
             "scrt_address"
           ],
           "properties": {
+            "alias": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "cred_id": {
               "type": "string"
             },
@@ -53,6 +65,16 @@
   ],
   "definitions": {
     "HumanAddr": {
+      "type": "string"
+    },
+    "PolicyType": {
+      "type": "string",
+      "enum": [
+        "Balanced",
+        "Immediate"
+      ]
+    },
+    "Uint128": {
       "type": "string"
     }
   }

@@ -16,9 +16,7 @@
       "$ref": "#/definitions/CanonicalAddr"
     },
     "total_cred": {
-      "type": "integer",
-      "format": "uint64",
-      "minimum": 0.0
+      "$ref": "#/definitions/Uint128"
     },
     "total_users": {
       "type": "integer",
@@ -33,6 +31,9 @@
     },
     "CanonicalAddr": {
       "$ref": "#/definitions/Binary"
+    },
+    "Uint128": {
+      "type": "string"
     }
   }
 }
