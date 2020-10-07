@@ -1,4 +1,5 @@
-### Client for minting etc for SecretPoints
+### Client for registering users and allocating cred for [Secret Points](https://github.com/SecretFoundation/SecretPoints)
+
 
 #### Install
     yarn

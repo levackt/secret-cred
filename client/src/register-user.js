@@ -21,26 +21,8 @@ const sc = require("sourcecred").default
 MNEMONIC = process.env.MNEMONIC;
 contractAddress = process.env.CONTRACT;
 
-var startTs = process.env.START_TS;
-var endTs = process.env.END_TS;
-
-const customFees = {
-  upload: {
-    amount: [{ amount: "2000000", denom: "uscrt" }],
-    gas: "2000000",
-  },
-  init: {
-    amount: [{ amount: "500000", denom: "uscrt" }],
-    gas: "500000",
-  },
-  exec: {
-    amount: [{ amount: "250000", denom: "uscrt" }],
-    gas: "250000",
-  },
-  send: {
-    amount: [{ amount: "80000", denom: "uscrt" }],
-    gas: "80000",
-  },
+function usage() {
+  console.log("yarn run register-user --github_name=[Github username] --scrt_address=[Secret Network address]")
 }
 
 async function loadCredView(repo) {
@@ -57,21 +39,25 @@ async function loadLedger(repo) {
     return sc.ledger.ledger.Ledger.parse(ledgerRaw);
 }
 
-function usage() {
-  console.log("yarn run register-user --cred_id=[Source Cred ID] --scrt_address=[Secret Network address]")
-}
-
 async function main() {
 
-  const cred_id = argv.cred_id;
+  const github_name = argv.github_name;
   const scrt_address = argv.scrt_address;
 
-  if (!cred_id) {
-    throw "cred_id expected"
+  if (!github_name) {
+    throw "github_name expected"
   }
   if (!scrt_address) {
     throw "scrt_address expected"
   }
+
+  ledger = await loadLedger("SecretFoundation/SecretPoints")
+  const cred_id = ledger._nameToId.get(github_name);
+
+  if (!cred_id) {
+    throw `cred_id not found for github_name=${github_name}`
+  }
+  console.log(`Registering cred_id=${cred_id} for ${github_name}`)
 
   const signingPen = await Secp256k1Pen.fromMnemonic(MNEMONIC);
   const myWalletAddress = pubkeyToAddress(
@@ -83,7 +69,7 @@ async function main() {
     httpUrl,
     myWalletAddress,
     (signBytes) => signingPen.sign(signBytes),
-    txEncryptionSeed, customFees
+    txEncryptionSeed
   );
 
   const result = await client.queryContractSmart(contractAddress, { is_cred_registered: { cred_id } });
@@ -94,7 +80,8 @@ async function main() {
   } else {
     const registerMsg = {
       cred_id,
-      scrt_address
+      scrt_address,
+      alias: github_name
     }
     console.log(`register message=${JSON.stringify(registerMsg)}`)
 
