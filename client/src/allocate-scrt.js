@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+const {argv} = require('yargs')
+
 /* eslint-disable @typescript-eslint/camelcase */
 const { Encoding } = require("@iov/encoding");
 const { coin } = require("@cosmjs/sdk38");
@@ -18,9 +20,6 @@ const sc = require("sourcecred").default
 
 MNEMONIC = process.env.MNEMONIC;
 contractAddress = process.env.CONTRACT;
-
-var startTs = process.env.START_TS;
-var endTs = process.env.END_TS;
 
 const customFees = {
   upload: {
@@ -53,6 +52,10 @@ async function loadLedger(repo) {
     const ledgerFile = `https://raw.githubusercontent.com/${repo}/gh-pages/data/ledger.json`;
     const ledgerRaw = await (await fetch(ledgerFile)).text();
     return sc.ledger.ledger.Ledger.parse(ledgerRaw);
+}
+
+function usage() {
+  console.log("yarn run allocate --start_date=[Start date] --end_date=[End date]")
 }
 
 async function main() {
@@ -89,19 +92,30 @@ async function main() {
 
   const logs = ledger.eventLog();
 
-  //default to previous month
+
+  const startDateInput = argv.start_date;
+  const endDateInput = argv.end_date;
+
   var today = new Date();
-  if (!startTs) {
-    startTs = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  if (startDateInput) {
+    startDate = new Date(startDateInput)
+  } else {
+    startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
   }
 
-  if (!endTs) {
-    endTs = new Date(today.getFullYear(), today.getMonth(), 0);
+  if (endDateInput) {
+    endDate = new Date(endDateInput)
+  } else {
+    endDate = new Date(today.getFullYear(), today.getMonth(), 0);
   }
 
-  console.log(`Distributing from start=${startTs} to end=${endTs}`)
+  if (endDate < startDate) {
+    throw "END_DATE cannot be before START_DATE"
+  }
 
-  distributions = logs.filter(x => x.ledgerTimestamp < endTs && x.ledgerTimestamp > startTs)
+  console.log(`Distributing from start=${startDate} to end=${endDate}`)
+
+  distributions = logs.filter(x => x.ledgerTimestamp < endDate && x.ledgerTimestamp > startDate)
       .filter(x => x.action.type === "DISTRIBUTE_GRAIN");
 
   const allocations = [];
