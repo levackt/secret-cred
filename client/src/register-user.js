@@ -21,6 +21,25 @@ const sc = require("sourcecred").default
 MNEMONIC = process.env.MNEMONIC;
 contractAddress = process.env.CONTRACT;
 
+const customFees = {
+  upload: {
+    amount: [{ amount: "2000000", denom: "uscrt" }],
+    gas: "2000000",
+  },
+  init: {
+    amount: [{ amount: "500000", denom: "uscrt" }],
+    gas: "500000",
+  },
+  exec: {
+    amount: [{ amount: "250000", denom: "uscrt" }],
+    gas: "250000",
+  },
+  send: {
+    amount: [{ amount: "80000", denom: "uscrt" }],
+    gas: "80000",
+  },
+}
+
 function usage() {
   console.log("yarn run register-user --github_name=[Github username] --scrt_address=[Secret Network address]")
 }
@@ -69,7 +88,7 @@ async function main() {
     httpUrl,
     myWalletAddress,
     (signBytes) => signingPen.sign(signBytes),
-    txEncryptionSeed
+    txEncryptionSeed, customFees
   );
 
   const result = await client.queryContractSmart(contractAddress, { is_cred_registered: { cred_id } });

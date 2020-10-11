@@ -18,7 +18,7 @@ adds any allocations due to the user periodically, or as part of the Secret Poin
 ```bash
     secretcli tx compute store contract.wasm.gz --from <key alias> --source "https://github.com/levackt/secret-cred" -y --gas 20000000
     CODE_ID=<result of upload TX>
-    INIT="{\"denom\": \"scrt\"}"
+    INIT="{\"denom\": \"uscrt\"}"
     secretcli tx compute instantiate $CODE_ID "$INIT" --from <key alias> --label "something unique" -y
 ```
 
