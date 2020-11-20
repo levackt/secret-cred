@@ -13,6 +13,7 @@ const {
 
 const fs = require("fs");
 
+//const httpUrl = "http://localhost:1317";
 const httpUrl = "https://bootstrap.secrettestnet.io";
 require('dotenv-defaults').config();
 const fetch = require('node-fetch');
@@ -83,6 +84,8 @@ async function main() {
     encodeSecp256k1Pubkey(signingPen.pubkey),
     "secret"
   );
+  console.log(`myWalletAddress=${myWalletAddress}`)
+
   const txEncryptionSeed = EnigmaUtils.GenerateNewSeed();
   const client = new SigningCosmWasmClient(
     httpUrl,

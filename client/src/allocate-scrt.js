@@ -14,6 +14,8 @@ const {
 const fs = require("fs");
 
 const httpUrl = "https://bootstrap.secrettestnet.io";
+//const httpUrl = "http://localhost:1317";
+
 require('dotenv-defaults').config();
 const fetch = require('node-fetch');
 const sc = require("sourcecred").default
@@ -77,6 +79,7 @@ async function main() {
 
   const config = await client.queryContractSmart(contractAddress, { config: { } })
   console.log(`contract config=${JSON.stringify(config)}`)
+  const tokenAddress = config.token_contract.address;
 
   ledger = await loadLedger("SecretFoundation/SecretPoints")
 
@@ -100,7 +103,7 @@ async function main() {
   if (startDateInput) {
     startDate = new Date(startDateInput)
   } else {
-    startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
   }
 
   if (endDateInput) {
@@ -133,6 +136,10 @@ async function main() {
   for (const allocation of allocations) {
 
     console.log(`Distributing policyType=${allocation.policy.policyType}, budget=${allocation.policy.budget}`);
+
+    let tokenInfo = await client.queryContractSmart(tokenAddress, { token_info: { } });
+    console.log('tokenInfo result: ', tokenInfo)
+
     for (const receipt of allocation.receipts) {
 
       // allocate if user is registered
@@ -162,6 +169,9 @@ async function main() {
 
         console.info(`Allocate result: ${JSON.stringify(result)}`);
       }
+
+      tokenInfo = await client.queryContractSmart(tokenAddress, { token_info: { } });
+      console.log('tokenInfo result: ', tokenInfo)
     }
   }
 }

@@ -11441,10 +11441,10 @@ schema-utils@^2.5.0, schema-utils@^2.6.0, schema-utils@^2.6.1, schema-utils@^2.6
     ajv "^6.12.4"
     ajv-keywords "^3.5.2"
 
-secretjs@0.9.17:
-  version "0.9.17"
-  resolved "https://registry.yarnpkg.com/secretjs/-/secretjs-0.9.17.tgz#b02735405535f18455f2d4ee0ed2403c5ee650f1"
-  integrity sha512-tJkjrpgyj4mdG8RitWQ5IuGZgroDkh4K2X1Vt13hVNdZqidmpv/otaaYqyPsDysSCOjbZaNmldjRybENy9pB+g==
+secretjs@0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/secretjs/-/secretjs-0.10.0.tgz#70a40da8763a95c8cab410629cc0c23bf450cff6"
+  integrity sha512-8/UcL6mroonrGJBNPwehk3zkdBOksqem/7/5D7F2sVODnsWbZB2sqNchsUWFF0nZe+xHyDqt4OskjEcWbgSsPw==
   dependencies:
     "@iov/crypto" "^2.1.0"
     "@iov/encoding" "^2.1.0"

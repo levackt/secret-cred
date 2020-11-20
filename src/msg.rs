@@ -1,11 +1,11 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use cosmwasm_std::{CanonicalAddr, HumanAddr, Uint128};
-use crate::state::{PolicyType};
+use cosmwasm_std::{CanonicalAddr, HumanAddr, Uint128, Binary};
+use crate::state::{PolicyType, ContractInfo};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
-    pub denom: String
+    pub token_contract: ContractInfo,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

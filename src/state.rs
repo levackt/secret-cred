@@ -5,7 +5,7 @@ use cosmwasm_storage::{
     bucket, bucket_read, singleton, singleton_read, Bucket, ReadonlyBucket, ReadonlySingleton,
     Singleton,
 };
-use cosmwasm_std::{CanonicalAddr, Storage, Uint128};
+use cosmwasm_std::{HumanAddr, CanonicalAddr, Storage, Uint128};
 
 pub static CONFIG_KEY: &[u8] = b"config";
 pub static USER_CRED_KEY: &[u8] = b"user_cred";
@@ -14,8 +14,17 @@ pub static USER_CRED_KEY: &[u8] = b"user_cred";
 pub struct State {
     pub total_cred: Uint128,
     pub total_users: u64,
-    pub denom: String,
     pub owner: CanonicalAddr,
+    pub token_contract: ContractInfo,
+}
+
+// struct containing token contract info
+// hash: String -- code hash of the SNIP-20 token contract
+// address: HumanAddr -- address of the SNIP-20 token contract
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ContractInfo {
+    pub code_hash: String,
+    pub address: HumanAddr,
 }
 
 pub fn config<S: Storage>(storage: &mut S) -> Singleton<S, State> {
