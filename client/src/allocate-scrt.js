@@ -171,8 +171,8 @@ async function main() {
       }
 
       tokenInfo = await client.queryContractSmart(tokenAddress, { token_info: { } });
-      console.log('tokenInfo result: ', tokenInfo)
     }
+    console.log('tokenInfo result: ', tokenInfo)
   }
 }
 

@@ -1,7 +1,7 @@
-use cosmwasm_std::{to_binary, Api, BankMsg, Binary, CanonicalAddr, CosmosMsg, Env, Extern, HandleResponse, InitResponse, log, Querier, StdError, StdResult, Storage, HumanAddr, Uint128};
+use cosmwasm_std::{to_binary, Api, Binary, CosmosMsg, Env, Extern, HandleResponse, InitResponse, log, Querier, StdError, StdResult, Storage, HumanAddr, Uint128};
 
 use crate::msg::{ CredAllocatedResponse, CredRegisteredResponse, HandleMsg, InitMsg, QueryMsg, UserCredResponse, TotalAllocatedResponse};
-use crate::state::{config, config_read, user_cred, user_cred_read, State, UserCred, PolicyType, Allocation, ContractInfo};
+use crate::state::{config, config_read, user_cred, user_cred_read, State, UserCred, PolicyType, Allocation};
 use crate::tokens::mint;
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
@@ -208,375 +208,365 @@ fn query_total_allocated<S: Storage, A: Api, Q: Querier>(
 
     Ok(TotalAllocatedResponse { total_allocated: cred.total_allocated })
 }
-//
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use cosmwasm_std::testing::{mock_dependencies, mock_env, MockApi, MockQuerier, MockStorage};
-//     use cosmwasm_std::{coins, from_binary, StdError};
-//     pub const DENOM: &str = "foocoin";
-//     const TEST_CREATOR: &str = "creator";
-//
-//     #[test]
-//     fn proper_initialization() {
-//         let mut deps = mock_dependencies(20, &[]);
-//         mock_init(&mut deps);
-//
-//         // it worked, let's query the state
-//         let res = query(&deps, QueryMsg::Config {}).unwrap();
-//         let state: State = from_binary(&res).unwrap();
-//
-//         assert_eq!(
-//             state,
-//             State {
-//                 total_cred: Uint128::zero(),
-//                 total_users: 0,
-//                 denom: String::from(DENOM),
-//                 owner: deps
-//                     .api
-//                     .canonical_address(&HumanAddr::from(TEST_CREATOR))
-//                     .unwrap(),
-//             }
-//         );
-//     }
-//
-//     fn mock_init(mut deps: &mut Extern<MockStorage, MockApi, MockQuerier>) {
-//         let msg = InitMsg { denom: String::from(DENOM) };
-//         let env = mock_env(TEST_CREATOR, &coins(1000, "hush money"));
-//
-//         let _res = init(&mut deps, env, msg).expect("contract successfully handles InitMsg");
-//     }
-//
-//     fn assert_registered(
-//         deps: &mut Extern<MockStorage, MockApi, MockQuerier>,
-//         cred_id: &str,
-//         expected: bool,
-//     ) {
-//         let res = query(
-//             &deps,
-//             QueryMsg::IsCredRegistered {
-//                 cred_id: cred_id.to_string(),
-//             },
-//         ).unwrap();
-//
-//         let value: CredRegisteredResponse = from_binary(&res).unwrap();
-//         assert_eq!(expected, value.registered);
-//     }
-//
-//     fn assert_config_state(deps: &mut Extern<MockStorage, MockApi, MockQuerier>, expected: State) {
-//         let res = query(&deps, QueryMsg::Config {}).unwrap();
-//         let value: State = from_binary(&res).unwrap();
-//         assert_eq!(value, expected);
-//     }
-//
-//     fn assert_cred_balance(deps: &mut Extern<MockStorage, MockApi, MockQuerier>, expected: UserCred) {
-//         let res = query(&deps, QueryMsg::GetUserCred { cred_id: expected.cred_id }).unwrap();
-//         let value: UserCredResponse = from_binary(&res).unwrap();
-//         assert_eq!(value.total_allocated, expected.total_allocated);
-//     }
-//
-//     fn assert_cred_allocated(deps: &mut Extern<MockStorage, MockApi, MockQuerier>, cred_id: String, allocation_id: String, expected: bool) {
-//         let res = query(&deps, QueryMsg::IsAllocated { cred_id, allocation_id }).unwrap();
-//         let value: CredAllocatedResponse = from_binary(&res).unwrap();
-//         assert_eq!(value.allocated, expected);
-//     }
-//
-//     #[test]
-//     fn register_cred_and_query_works() {
-//         let mut deps = mock_dependencies(20, &[]);
-//         let env = mock_env(TEST_CREATOR, &coins(1000, "hush money"));
-//         mock_init(&mut deps);
-//
-//         let cred_id = "cred1".to_string();
-//         let msg = HandleMsg::RegisterUser {
-//             cred_id,
-//             scrt_address: HumanAddr("secret007".to_string()),
-//             alias: Some("secret007".to_string()),
-//         };
-//
-//         let _res = handle(&mut deps, env, msg).expect("contract successfully registers cred");
-//         assert_registered(&mut deps, "cred1", true);
-//
-//         let owner_raw = deps
-//             .api
-//             .canonical_address(&HumanAddr::from(TEST_CREATOR))
-//             .unwrap();
-//         assert_config_state(&mut deps, State{
-//             total_cred: Uint128::zero(),
-//             total_users: 1,
-//             denom: "foocoin".to_string(),
-//             owner: owner_raw,
-//         });
-//
-//         assert_cred_balance(&mut deps, UserCred {
-//             cred_id: "cred1".to_string(),
-//             scrt_address: Default::default(),
-//             total_allocated: Uint128::zero(),
-//             allocations: vec![],
-//             alias: None,
-//         });
-//     }
-//
-//     #[test]
-//     fn allocate_cred_works() {
-//         let mut deps = mock_dependencies(20, &[]);
-//         mock_init(&mut deps);
-//         let env = mock_env(TEST_CREATOR, &coins(100u128, "foocoin"));
-//
-//         let cred_id = "cred1".to_string();
-//         let msg = HandleMsg::RegisterUser {
-//             cred_id,
-//             scrt_address: HumanAddr("secret007".to_string()),
-//             alias: None,
-//         };
-//
-//         let _res = handle(&mut deps, env.clone(), msg).expect("contract successfully registers cred");
-//         assert_registered(&mut deps, "cred1", true);
-//
-//         let cred_id = "cred1".to_string();
-//         let msg = HandleMsg::Allocate {
-//             allocation_id: "allocation 1".to_string(),
-//             policy_type: PolicyType::Balanced,
-//             cred_id,
-//             amount: Uint128::from(100u128)
-//         };
-//
-//         let owner_raw = deps
-//             .api
-//             .canonical_address(&HumanAddr::from(TEST_CREATOR))
-//             .unwrap();
-//
-//         let _res = handle(&mut deps, env.clone(), msg).expect("contract successfully allocates cred");
-//
-//         assert_config_state(&mut deps, State{
-//             total_cred: Uint128::from(100u128),
-//             total_users: 1,
-//             denom: "foocoin".to_string(),
-//             owner: owner_raw,
-//         });
-//
-//         assert_cred_balance(&mut deps, UserCred {
-//             cred_id: "cred1".to_string(),
-//             scrt_address: Default::default(),
-//             total_allocated: Uint128::from(100u128),
-//             allocations: vec![],
-//             alias: None
-//         });
-//
-//         assert_cred_allocated(&mut deps, "cred1".to_string(), "allocation 1".to_string(), true);
-//     }
-//
-//
-//     #[test]
-//     fn allocate_cred_fails_insufficient_funds() {
-//         let mut deps = mock_dependencies(20, &[]);
-//         mock_init(&mut deps);
-//         let env = mock_env(TEST_CREATOR, &coins(1u128, "foocoin"));
-//
-//         let cred_id = "cred1".to_string();
-//         let msg = HandleMsg::RegisterUser {
-//             cred_id,
-//             scrt_address: HumanAddr("secret007".to_string()),
-//             alias: None,
-//         };
-//
-//         let _res = handle(&mut deps, env.clone(), msg).expect("contract successfully registers cred");
-//         assert_registered(&mut deps, "cred1", true);
-//
-//         let cred_id = "cred1".to_string();
-//         let msg = HandleMsg::Allocate {
-//             allocation_id: "allocation 1".to_string(),
-//             policy_type: PolicyType::Balanced,
-//             cred_id,
-//             amount: Uint128::from(100u128)
-//         };
-//
-//         let handle_res = handle(&mut deps, env, msg.clone());
-//         match handle_res.unwrap_err() {
-//             StdError::GenericErr { msg, .. } => assert_eq!(msg, "Insufficient funds sent"),
-//             e => panic!("unexpected error: {:?}", e),
-//         }
-//
-//     }
-//
-//
-//     #[test]
-//     fn allocate_cred_twice_works() {
-//         let mut deps = mock_dependencies(20, &[]);
-//         mock_init(&mut deps);
-//         let env = mock_env(TEST_CREATOR, &coins(29416857982094508000u128, "foocoin"));
-//
-//         let cred_id = "cred1".to_string();
-//         let msg = HandleMsg::RegisterUser {
-//             cred_id,
-//             scrt_address: HumanAddr("secret007".to_string()),
-//             alias: None,
-//         };
-//
-//         let _res = handle(&mut deps, env.clone(), msg).expect("contract successfully registers cred");
-//         assert_registered(&mut deps, "cred1", true);
-//
-//         let cred_id = "cred1".to_string();
-//         let msg = HandleMsg::Allocate {
-//             allocation_id: "allocation 1".to_string(),
-//             policy_type: PolicyType::Balanced,
-//             cred_id: cred_id.clone(),
-//             amount: Uint128::from(14708428991047254000u128)
-//         };
-//
-//         let owner_raw = deps
-//             .api
-//             .canonical_address(&HumanAddr::from(TEST_CREATOR))
-//             .unwrap();
-//
-//         let _res = handle(&mut deps, env.clone(), msg).expect("contract successfully allocates cred");
-//
-//         assert_config_state(&mut deps, State{
-//             total_cred: Uint128::from(14708428991047254000u128),
-//             total_users: 1,
-//             denom: "foocoin".to_string(),
-//             owner: owner_raw.clone(),
-//         });
-//
-//         assert_cred_balance(&mut deps, UserCred {
-//             cred_id: "cred1".to_string(),
-//             scrt_address: Default::default(),
-//             total_allocated: Uint128::from(14708428991047254000u128),
-//             allocations: vec![],
-//             alias: None
-//         });
-//
-//
-//         let msg = HandleMsg::Allocate {
-//             allocation_id: "allocation 2".to_string(),
-//             policy_type: PolicyType::Balanced,
-//             cred_id: cred_id.clone(),
-//             amount: Uint128::from(29416857982094508000u128)
-//         };
-//
-//         let handle_res = handle(&mut deps, env.clone(), msg).expect("contract successfully allocates more cred");
-//
-//         let msg = handle_res.messages.get(0).expect("no message");
-//         assert_eq!(
-//             msg,
-//             &CosmosMsg::Bank(BankMsg::Send {
-//                 from_address: HumanAddr::from("creator"),
-//                 to_address: HumanAddr::from("secret007"),
-//                 amount: coins(29416857982094508000u128, DENOM),
-//             })
-//         );
-//
-//         assert_config_state(&mut deps, State{
-//             total_cred: Uint128::from(44125286973141762000u128),
-//             total_users: 1,
-//             denom: "foocoin".to_string(),
-//             owner: owner_raw,
-//         });
-//
-//         assert_cred_balance(&mut deps, UserCred {
-//             cred_id: "cred1".to_string(),
-//             scrt_address: Default::default(),
-//             total_allocated: Uint128::from(44125286973141762000u128),
-//             allocations: vec![],
-//             alias: None
-//         })
-//     }
-//
-//     #[test]
-//     fn allocate_cred_duplicate_fails() {
-//         let mut deps = mock_dependencies(20, &[]);
-//         mock_init(&mut deps);
-//         let env = mock_env(TEST_CREATOR, &coins(100u128, "foocoin"));
-//
-//         let cred_id = "cred1".to_string();
-//         let msg = HandleMsg::RegisterUser {
-//             cred_id,
-//             scrt_address: HumanAddr("secret007".to_string()),
-//             alias: None,
-//         };
-//
-//         let _res = handle(&mut deps, env.clone(), msg).expect("contract successfully registers cred");
-//         assert_registered(&mut deps, "cred1", true);
-//
-//         let cred_id = "cred1".to_string();
-//         let msg = HandleMsg::Allocate {
-//             allocation_id: "allocation 1".to_string(),
-//             policy_type: PolicyType::Balanced,
-//             cred_id,
-//             amount: Uint128::from(100u128)
-//         };
-//
-//         let owner_raw = deps
-//             .api
-//             .canonical_address(&HumanAddr::from(TEST_CREATOR))
-//             .unwrap();
-//
-//         let _res = handle(&mut deps, env.clone(), msg.clone()).expect("contract successfully allocates cred");
-//
-//         assert_config_state(&mut deps, State{
-//             total_cred: Uint128::from(100u128),
-//             total_users: 1,
-//             denom: "foocoin".to_string(),
-//             owner: owner_raw.clone(),
-//         });
-//
-//         assert_cred_balance(&mut deps, UserCred {
-//             cred_id: "cred1".to_string(),
-//             scrt_address: Default::default(),
-//             total_allocated: Uint128::from(100u128),
-//             allocations: vec![],
-//             alias: None
-//         });
-//
-//         let _res = handle(&mut deps, env.clone(), msg);
-//
-//         match _res {
-//             Ok(_) => panic!("expected error"),
-//             Err(StdError::GenericErr { msg, .. }) => {
-//                 assert_eq!(msg, "Already allocated")
-//             }
-//             Err(e) => panic!("unexpected error: {:?}", e),
-//         }
-//
-//         assert_config_state(&mut deps, State{
-//             total_cred: Uint128::from(100u128),
-//             total_users: 1,
-//             denom: "foocoin".to_string(),
-//             owner: owner_raw,
-//         });
-//
-//         assert_cred_balance(&mut deps, UserCred {
-//             cred_id: "cred1".to_string(),
-//             scrt_address: Default::default(),
-//             total_allocated: Uint128::from(100u128),
-//             allocations: vec![],
-//             alias: None
-//         })
-//     }
-//
-//
-//     #[test]
-//     fn register_twice_fails() {
-//         let mut deps = mock_dependencies(20, &[]);
-//         let env = mock_env(TEST_CREATOR, &coins(1000, "hush money"));
-//         mock_init(&mut deps);
-//
-//         let cred_id = "cred1".to_string();
-//         let msg = HandleMsg::RegisterUser {
-//             cred_id,
-//             scrt_address: HumanAddr("secret007".to_string()),
-//             alias: None,
-//         };
-//
-//         let _res = handle(&mut deps, env.clone(), msg.clone()).expect("contract successfully registers cred");
-//         assert_registered(&mut deps, "cred1", true);
-//         let _res = handle(&mut deps, env, msg);
-//         match _res {
-//             Ok(_) => panic!("expected error"),
-//             Err(StdError::GenericErr { msg, .. }) => {
-//                 assert_eq!(msg, "User already exists")
-//             }
-//             Err(e) => panic!("unexpected error: {:?}", e),
-//         }
-//     }
-// }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, MockApi, MockQuerier, MockStorage};
+    use cosmwasm_std::{coins, from_binary, StdError};
+    use crate::state::{ContractInfo};
+    pub const TOKEN_HASH: &str = "foocoinhash";
+    
+    const TEST_CREATOR: &str = "creator";
+
+    #[test]
+    fn proper_initialization() {
+        let mut deps = mock_dependencies(20, &[]);
+        mock_init(&mut deps);
+
+        // it worked, let's query the state
+        let res = query(&deps, QueryMsg::Config {}).unwrap();
+        let state: State = from_binary(&res).unwrap();
+        let token_contract = ContractInfo {
+            code_hash: TOKEN_HASH.to_string(),
+            address: HumanAddr(TOKEN_HASH.to_string()),
+        };
+
+        assert_eq!(
+            state,
+            State {
+                total_cred: Uint128::zero(),
+                total_users: 0,
+                token_contract,
+                owner: deps
+                    .api
+                    .canonical_address(&HumanAddr::from(TEST_CREATOR))
+                    .unwrap(),
+            }
+        );
+    }
+
+    fn mock_init(mut deps: &mut Extern<MockStorage, MockApi, MockQuerier>) {
+        let token_contract = ContractInfo {
+            code_hash: TOKEN_HASH.to_string(),
+            address: HumanAddr(TOKEN_HASH.to_string()),
+        };
+
+        let msg = InitMsg { token_contract };
+        let env = mock_env(TEST_CREATOR, &coins(1000, "hush money"));
+
+        let _res = init(&mut deps, env, msg).expect("contract successfully handles InitMsg");
+    }
+
+    fn assert_registered(
+        deps: &mut Extern<MockStorage, MockApi, MockQuerier>,
+        cred_id: &str,
+        expected: bool,
+    ) {
+        let res = query(
+            &deps,
+            QueryMsg::IsCredRegistered {
+                cred_id: cred_id.to_string(),
+            },
+        ).unwrap();
+
+        let value: CredRegisteredResponse = from_binary(&res).unwrap();
+        assert_eq!(expected, value.registered);
+    }
+
+    fn assert_config_state(deps: &mut Extern<MockStorage, MockApi, MockQuerier>, expected: State) {
+        let res = query(&deps, QueryMsg::Config {}).unwrap();
+        let value: State = from_binary(&res).unwrap();
+        assert_eq!(value, expected);
+    }
+
+    fn assert_cred_balance(deps: &mut Extern<MockStorage, MockApi, MockQuerier>, expected: UserCred) {
+        let res = query(&deps, QueryMsg::GetUserCred { cred_id: expected.cred_id }).unwrap();
+        let value: UserCredResponse = from_binary(&res).unwrap();
+        assert_eq!(value.total_allocated, expected.total_allocated);
+    }
+
+    fn assert_cred_allocated(deps: &mut Extern<MockStorage, MockApi, MockQuerier>, cred_id: String, allocation_id: String, expected: bool) {
+        let res = query(&deps, QueryMsg::IsAllocated { cred_id, allocation_id }).unwrap();
+        let value: CredAllocatedResponse = from_binary(&res).unwrap();
+        assert_eq!(value.allocated, expected);
+    }
+
+    #[test]
+    fn register_cred_and_query_works() {
+        let token_contract = ContractInfo {
+            code_hash: TOKEN_HASH.to_string(),
+            address: HumanAddr(TOKEN_HASH.to_string()),
+        };
+        let mut deps = mock_dependencies(20, &[]);
+        let env = mock_env(TEST_CREATOR, &coins(1000, "hush money"));
+        mock_init(&mut deps);
+
+        let cred_id = "cred1".to_string();
+        let msg = HandleMsg::RegisterUser {
+            cred_id,
+            scrt_address: HumanAddr("secret007".to_string()),
+            alias: Some("secret007".to_string()),
+        };
+
+        let _res = handle(&mut deps, env, msg).expect("contract successfully registers cred");
+        assert_registered(&mut deps, "cred1", true);
+
+        let owner_raw = deps
+            .api
+            .canonical_address(&HumanAddr::from(TEST_CREATOR))
+            .unwrap();
+        assert_config_state(&mut deps, State{
+            total_cred: Uint128::zero(),
+            total_users: 1,
+            token_contract,
+            owner: owner_raw,
+        });
+
+        assert_cred_balance(&mut deps, UserCred {
+            cred_id: "cred1".to_string(),
+            scrt_address: Default::default(),
+            total_allocated: Uint128::zero(),
+            allocations: vec![],
+            alias: None,
+        });
+    }
+
+    #[test]
+    fn allocate_cred_works() {
+        let mut deps = mock_dependencies(20, &[]);
+        mock_init(&mut deps);
+        let env = mock_env(TEST_CREATOR, &coins(100u128, "foocoin"));
+
+        let cred_id = "cred1".to_string();
+        let msg = HandleMsg::RegisterUser {
+            cred_id,
+            scrt_address: HumanAddr("secret007".to_string()),
+            alias: None,
+        };
+
+        let _res = handle(&mut deps, env.clone(), msg).expect("contract successfully registers cred");
+        assert_registered(&mut deps, "cred1", true);
+
+        let cred_id = "cred1".to_string();
+        let msg = HandleMsg::Allocate {
+            allocation_id: "allocation 1".to_string(),
+            policy_type: PolicyType::Balanced,
+            cred_id,
+            amount: Uint128::from(100u128)
+        };
+
+        let owner_raw = deps
+            .api
+            .canonical_address(&HumanAddr::from(TEST_CREATOR))
+            .unwrap();
+
+        let _res = handle(&mut deps, env.clone(), msg).expect("contract successfully allocates cred");
+
+        let token_contract = ContractInfo {
+            code_hash: TOKEN_HASH.to_string(),
+            address: HumanAddr(TOKEN_HASH.to_string()),
+        };
+        assert_config_state(&mut deps, State{
+            total_cred: Uint128::from(100u128),
+            total_users: 1,
+            token_contract,
+            owner: owner_raw,
+        });
+
+        assert_cred_balance(&mut deps, UserCred {
+            cred_id: "cred1".to_string(),
+            scrt_address: Default::default(),
+            total_allocated: Uint128::from(100u128),
+            allocations: vec![],
+            alias: None
+        });
+
+        assert_cred_allocated(&mut deps, "cred1".to_string(), "allocation 1".to_string(), true);
+    }
+
+
+    #[test]
+    fn allocate_cred_twice_works() {
+        let mut deps = mock_dependencies(20, &[]);
+        mock_init(&mut deps);
+        let env = mock_env(TEST_CREATOR, &coins(29416857982094508000u128, "foocoin"));
+
+        let cred_id = "cred1".to_string();
+        let msg = HandleMsg::RegisterUser {
+            cred_id,
+            scrt_address: HumanAddr("secret007".to_string()),
+            alias: None,
+        };
+
+        let _res = handle(&mut deps, env.clone(), msg).expect("contract successfully registers cred");
+        assert_registered(&mut deps, "cred1", true);
+
+        let cred_id = "cred1".to_string();
+        let msg = HandleMsg::Allocate {
+            allocation_id: "allocation 1".to_string(),
+            policy_type: PolicyType::Balanced,
+            cred_id: cred_id.clone(),
+            amount: Uint128::from(14708428991047254000u128)
+        };
+
+        let owner_raw = deps
+            .api
+            .canonical_address(&HumanAddr::from(TEST_CREATOR))
+            .unwrap();
+
+        let _res = handle(&mut deps, env.clone(), msg).expect("contract successfully allocates cred");
+
+        let token_contract = ContractInfo {
+            code_hash: TOKEN_HASH.to_string(),
+            address: HumanAddr(TOKEN_HASH.to_string()),
+        };
+        assert_config_state(&mut deps, State{
+            total_cred: Uint128::from(14708428991047254000u128),
+            total_users: 1,
+            token_contract,
+            owner: owner_raw.clone(),
+        });
+
+        assert_cred_balance(&mut deps, UserCred {
+            cred_id: "cred1".to_string(),
+            scrt_address: Default::default(),
+            total_allocated: Uint128::from(14708428991047254000u128),
+            allocations: vec![],
+            alias: None
+        });
+
+
+        let msg = HandleMsg::Allocate {
+            allocation_id: "allocation 2".to_string(),
+            policy_type: PolicyType::Balanced,
+            cred_id: cred_id.clone(),
+            amount: Uint128::from(29416857982094508000u128)
+        };
+
+        let handle_res = handle(&mut deps, env.clone(), msg).expect("contract successfully allocates more cred");
+
+        let _msg = handle_res.messages.get(0).expect("no message");
+
+        let token_contract = ContractInfo {
+            code_hash: TOKEN_HASH.to_string(),
+            address: HumanAddr(TOKEN_HASH.to_string()),
+        };
+        assert_config_state(&mut deps, State{
+            total_cred: Uint128::from(44125286973141762000u128),
+            total_users: 1,
+            token_contract,
+            owner: owner_raw,
+        });
+
+        assert_cred_balance(&mut deps, UserCred {
+            cred_id: "cred1".to_string(),
+            scrt_address: Default::default(),
+            total_allocated: Uint128::from(44125286973141762000u128),
+            allocations: vec![],
+            alias: None
+        })
+    }
+
+    #[test]
+    fn allocate_cred_duplicate_fails() {
+        let mut deps = mock_dependencies(20, &[]);
+        mock_init(&mut deps);
+        let env = mock_env(TEST_CREATOR, &coins(100u128, "foocoin"));
+
+        let cred_id = "cred1".to_string();
+        let msg = HandleMsg::RegisterUser {
+            cred_id,
+            scrt_address: HumanAddr("secret007".to_string()),
+            alias: None,
+        };
+
+        let _res = handle(&mut deps, env.clone(), msg).expect("contract successfully registers cred");
+        assert_registered(&mut deps, "cred1", true);
+
+        let cred_id = "cred1".to_string();
+        let msg = HandleMsg::Allocate {
+            allocation_id: "allocation 1".to_string(),
+            policy_type: PolicyType::Balanced,
+            cred_id,
+            amount: Uint128::from(100u128)
+        };
+
+        let owner_raw = deps
+            .api
+            .canonical_address(&HumanAddr::from(TEST_CREATOR))
+            .unwrap();
+
+        let _res = handle(&mut deps, env.clone(), msg.clone()).expect("contract successfully allocates cred");
+
+        let token_contract = ContractInfo {
+            code_hash: TOKEN_HASH.to_string(),
+            address: HumanAddr(TOKEN_HASH.to_string()),
+        };
+        assert_config_state(&mut deps, State{
+            total_cred: Uint128::from(100u128),
+            total_users: 1,
+            token_contract: token_contract.clone(),
+            owner: owner_raw.clone(),
+        });
+
+        assert_cred_balance(&mut deps, UserCred {
+            cred_id: "cred1".to_string(),
+            scrt_address: Default::default(),
+            total_allocated: Uint128::from(100u128),
+            allocations: vec![],
+            alias: None
+        });
+
+        let _res = handle(&mut deps, env.clone(), msg);
+
+        match _res {
+            Ok(_) => panic!("expected error"),
+            Err(StdError::GenericErr { msg, .. }) => {
+                assert_eq!(msg, "Already allocated")
+            }
+            Err(e) => panic!("unexpected error: {:?}", e),
+        }
+
+        assert_config_state(&mut deps, State{
+            total_cred: Uint128::from(100u128),
+            total_users: 1,
+            token_contract,
+            owner: owner_raw,
+        });
+
+        assert_cred_balance(&mut deps, UserCred {
+            cred_id: "cred1".to_string(),
+            scrt_address: Default::default(),
+            total_allocated: Uint128::from(100u128),
+            allocations: vec![],
+            alias: None
+        })
+    }
+
+
+    #[test]
+    fn register_twice_fails() {
+        let mut deps = mock_dependencies(20, &[]);
+        let env = mock_env(TEST_CREATOR, &coins(1000, "hush money"));
+        mock_init(&mut deps);
+
+        let cred_id = "cred1".to_string();
+        let msg = HandleMsg::RegisterUser {
+            cred_id,
+            scrt_address: HumanAddr("secret007".to_string()),
+            alias: None,
+        };
+
+        let _res = handle(&mut deps, env.clone(), msg.clone()).expect("contract successfully registers cred");
+        assert_registered(&mut deps, "cred1", true);
+        let _res = handle(&mut deps, env, msg);
+        match _res {
+            Ok(_) => panic!("expected error"),
+            Err(StdError::GenericErr { msg, .. }) => {
+                assert_eq!(msg, "User already exists")
+            }
+            Err(e) => panic!("unexpected error: {:?}", e),
+        }
+    }
+}

@@ -44,8 +44,7 @@ async function main() {
     (signBytes) => signingPen.sign(signBytes),
     txEncryptionSeed, customFees
   );
-  console.log(myWalletAddress)
-
+  console.log(`Deployer=${myWalletAddress}`)
 
   // upload token contract
   let wasm = fs.readFileSync(__dirname + "/../contracts/token/contract.wasm");
@@ -54,8 +53,8 @@ async function main() {
   let codeId = uploadReceipt.codeId;
   //init token
   const tokenInit = {
-    "name":"secretdev",
-    "symbol":"SDEV",
+    "name":"DevToken",
+    "symbol":"DEVT",
     "decimals": 18,
     "config": {
       "public_total_supply": true
@@ -85,16 +84,14 @@ async function main() {
   const secretCredInit = await client.instantiate(uploadReceipt.codeId, initMsg, label);
   console.info(`Contract instantiated at ${secretCredInit.contractAddress}`);
 
-//  allow secret cred contract to mint
-  let result = await client.execute(contractAddress, { add_minters: { minters: [secretCredInit.contractAddress] } });
+  // allow secret cred contract to mint
+  await client.execute(contractAddress, { add_minters: { minters: [secretCredInit.contractAddress] } });
   console.log('added minters')
-  console.log(result)
-
 }
 
 main().then(
   () => {
-    console.info("Secret Cred contract deployed.");
+    console.info("Secret Cred contracts deployed.");
     process.exit(0);
   },
   error => {

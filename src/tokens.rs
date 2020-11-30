@@ -1,6 +1,5 @@
 use cosmwasm_std::{
-    log, Api, Binary, CosmosMsg, Env, Extern, HandleResponse, HumanAddr, Querier, StdResult,
-    Storage, Uint128, WasmMsg,
+    Binary, CosmosMsg, HumanAddr, StdResult, Storage, Uint128, WasmMsg,
 };
 
 use crate::state::{ config_read };
