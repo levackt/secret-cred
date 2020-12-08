@@ -71,8 +71,8 @@ async function main() {
   uploadReceipt = await client.upload(wasm, {})
   console.info(`Upload succeeded. Receipt: ${JSON.stringify(uploadReceipt)}`);
 
-  // init secret cred
-  label = "secret-cred-" + (codes.length + 2);
+  // init devtoken
+  label = "devtoken";
   const hashStr = String(fs.readFileSync(__dirname + "/../contracts/token/hash.txt"));
   console.log(`hashStr=${hashStr}`)
 

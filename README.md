@@ -13,28 +13,24 @@ adds any allocations due to the user periodically, or as part of the Secret Poin
     make
 ```
 
-### Upload and instantiate the contract
-
-```bash
-    secretcli tx compute store contract.wasm.gz --from <key alias> --source "https://github.com/levackt/secret-cred" -y --gas 20000000
-    CODE_ID=<result of upload TX>
-    INIT="{\"denom\": \"uscrt\"}"
-    secretcli tx compute instantiate $CODE_ID "$INIT" --from <key alias> --label "something unique" -y
-```
-
-### Contract Admin
-The account used to instantiate the contract is the owner, it has permission to register users and allocate cred.
-
 #### install the client
 ```bash
     cd client
     yarn
 ```
 
-#### Copy or edit .env.defaults
+#### Copy and edit .env.defaults, add the admin user's mnemonic
 ```bash
     cp .env.defaults .env
 ```
+
+### Upload and instantiate the contract
+
+```bash
+    yarn run deploy:contract
+```
+
+Copy the contract address to .env
 
 #### User registration
 
